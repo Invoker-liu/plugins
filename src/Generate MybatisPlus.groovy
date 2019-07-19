@@ -23,6 +23,14 @@ typeMapping = [
         (~/(?i)number/)                   : "Long",
         (~/(?i)/)                         : "String"
 ]
+annonMap = [
+        (~/id/)                                 : "@TableId(value = \"%s\", type = IdType.ID_WORKER_STR) @ApiModelProperty(value = \"%s\", hidden = true)",
+        (~/created_by|created_date|order_no/)   : "@TableField(value = \"%s\", fill = FieldFill.INSERT) @ApiModelProperty(value = \"%s\", hidden = true)",
+        (~/last_modified_by|last_modified_date/): "@TableField(value = \"%s\", fill = FieldFill.INSERT_UPDATE) @ApiModelProperty(value = \"%s\", hidden = true)",
+        (~/enabled/)                            : "@TableField(value = \"%s\") @TableLogic(value = \"1\", delval = \"0\") @ApiModelProperty(value = \"%s\", hidden = true)",
+        (~/version/)                            : "@TableField(value = \"%s\") @ApiModelProperty(value = \"%s\", hidden = true) @Version",
+        (~/(?i)/)                               : "@TableField(value = \"%s\") @ApiModelProperty(value = \"%s\")"
+]
 
 FILES.chooseDirectoryAndSave("Choose directory", "Choose where to store generated files") { dir ->
     SELECTION.filter { it instanceof DasTable }.each { generate(it, dir) }
@@ -87,7 +95,7 @@ def calcFields(table) {
     }
 }
 
-static def gainComment(col) {
+def gainComment(col) {
     def comment = col.getComment()
     if (StringUtils.isBlank(comment)) {
         comment = col.getName()
@@ -95,39 +103,11 @@ static def gainComment(col) {
     comment
 }
 
-static def customAnnotation(col) {
-    def comment = col.getComment()
-    if (null == comment || "" == comment) {
-        comment = col.getName()
-    }
-    if ("id" == col.getName()) {
-        return "@TableId(value = \"" + col.getName() + "\" , type = IdType.ID_WORKER_STR) \n @ApiModelProperty(value = \"" + comment + "\")"
-    }
-    if ("pm_id" == col.getName()) {
-        return "@TableId(value = \"" + col.getName() + "\" , type = IdType.INPUT) \n @ApiModelProperty(value = \"" + comment + "\")"
-    }
-    if ("created_by" == col.getName()) {
-        return "@TableField(value = \"" + col.getName() + "\", fill = FieldFill.INSERT) \n @ApiModelProperty(value = \"" + comment + "\")"
-    }
-    if ("created_date" == col.getName()) {
-        return "@TableField(value = \"" + col.getName() + "\", fill = FieldFill.INSERT) \n @ApiModelProperty(value = \"" + comment + "\")"
-    }
-    if ("last_modified_by" == col.getName()) {
-        return "@TableField(value = \"" + col.getName() + "\", fill = FieldFill.INSERT_UPDATE) \n @ApiModelProperty(value = \"" + comment + "\")"
-    }
-    if ("last_modified_date" == col.getName()) {
-        return "@TableField(value = \"" + col.getName() + "\", fill = FieldFill.INSERT_UPDATE)  \n @ApiModelProperty(value = \"" + comment + "\")"
-    }
-    if ("enabled" == col.getName()) {
-        return "@TableField(value = \"" + col.getName() + "\") \n @TableLogic(value = \"1\", delval = \"0\") \n @ApiModelProperty(value = \"" + comment + "\")"
-    }
-    if ("version" == col.getName()) {
-        return "@TableField(value = \"" + col.getName() + "\") \n  @Version \n @ApiModelProperty(value = \"" + comment + "\")"
-    }
-    if ("order_no" == col.getName()) {
-        return "@TableField(value = \"" + col.getName() + "\", fill = FieldFill.INSERT) \n  @Version \n @ApiModelProperty(value = \"" + comment + "\")"
-    }
-    return "@TableField(value = \"" + col.getName() + "\") \n @ApiModelProperty(value = \"" + comment + "\")"
+def customAnnotation(col) {
+    def comment = gainComment(col)
+    def colName = Case.LOWER.apply(col.getName())
+    def format = annonMap.find { p, t -> p.matcher(colName).find() }.value
+    return String.format(format, col.getName(), comment)
 }
 
 def javaName(str, capitalize) {
