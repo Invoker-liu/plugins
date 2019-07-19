@@ -1,6 +1,8 @@
 import com.intellij.database.model.DasTable
 import com.intellij.database.util.Case
 import com.intellij.database.util.DasUtil
+import org.apache.commons.lang3.StringUtils
+
 /*
 * Available context bindings:
 *   SELECTION   Iterable<DasObject>
@@ -11,8 +13,9 @@ import com.intellij.database.util.DasUtil
 /*定义全局变量 包名以及字段映射Map等 */
 packageName = "com.oppo.csc.ddp.decision.pojo.po;"
 typeMapping = [
-        (~/bigint/)                   : "Long",
-        (~/int/)                      : "Integer",
+        (~/bigint/)                       : "Long",
+        (~/int/)                          : "Integer",
+        (~/number\(\*\)/)                 : "Integer",
         (~/(?i)float|double|decimal|real/): "double",
         (~/(?i)datetime|timestamp/)       : "LocalDateTime",
         (~/(?i)date/)                     : "LocalDate",
@@ -35,9 +38,6 @@ def generate(out, table, className, fields) {
     out.println "package $packageName"
     /* 可在此添加需要导入的包名，也可通过 IDE 批量修改生成的 Java 文件 */
     out.println ""
-    out.println "import com.baomidou.mybatisplus.annotation.*;"
-    out.println "import io.swagger.annotations.ApiModel;"
-    out.println "import io.swagger.annotations.ApiModelProperty;"
     out.println ""
     out.println "/** * @author jason */"
     out.println "@ApiModel(value = \"${table.getComment()}\")"
@@ -75,7 +75,6 @@ def generate(out, table, className, fields) {
 def calcFields(table) {
     DasUtil.getColumns(table).reduce([]) { fields, col ->
         def spec = Case.LOWER.apply(col.getDataType().getSpecification())
-        def spec2 = Case.LOWER.apply(col.getDataType().getSpecification())
         def typeStr = typeMapping.find { p, t -> p.matcher(spec).find() }.value
         fields += [[
                            name    : javaName(col.getName(), false),
@@ -90,10 +89,10 @@ def calcFields(table) {
 
 static def gainComment(col) {
     def comment = col.getComment()
-    if (null == comment || "" == comment) {
+    if (StringUtils.isBlank(comment)) {
         comment = col.getName()
     }
-    return comment
+    comment
 }
 
 static def customAnnotation(col) {
