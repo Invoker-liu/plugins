@@ -29,6 +29,7 @@ annonMap = [
         (~/last_modified_by|last_modified_date/): "@TableField(value = \"%s\", fill = FieldFill.INSERT_UPDATE) @ApiModelProperty(value = \"%s\", hidden = true)",
         (~/enabled/)                            : "@TableField(value = \"%s\") @TableLogic(value = \"1\", delval = \"0\") @ApiModelProperty(value = \"%s\", hidden = true)",
         (~/version/)                            : "@TableField(value = \"%s\") @ApiModelProperty(value = \"%s\", hidden = true) @Version",
+        (~/disabled_date/)                      : "@TableField(value = \"%s\") @ApiModelProperty(value = \"%s\", hidden = true) ",
         (~/(?i)/)                               : "@TableField(value = \"%s\") @ApiModelProperty(value = \"%s\")"
 ]
 apiModel = "@ApiModel(value = \"%s\")"
