@@ -87,7 +87,7 @@ def generate(out, table, className, fields) {
 def calcFields(table) {
     DasUtil.getColumns(table).reduce([]) { fields, col ->
         def spec = Case.LOWER.apply(col.getDataType().getSpecification())
-        def typeStr = typeMapping.find { p, t -> p.matcher(spec).find() }.value
+        def typeStr = typeMapping.find { p, t -> p.matcher(spec).lookingAt() }.value
         fields += [[
                            name    : javaName(col.getName(), false),
                            type    : typeStr,
