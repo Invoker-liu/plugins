@@ -10,7 +10,7 @@ import org.apache.commons.lang3.StringUtils
 *   FILES       files helper
 */
 
-/*定义全局变量 包名以及字段映射Map等 */
+/*定义全局变量  类型映射 注解映射 表头*/
 packageName = "com.oppo.csc.ddp.decision.pojo.po;"
 typeMapping = [
         (~/bigint/)                       : "Long",
@@ -31,6 +31,8 @@ annonMap = [
         (~/version/)                            : "@TableField(value = \"%s\") @ApiModelProperty(value = \"%s\", hidden = true) @Version",
         (~/(?i)/)                               : "@TableField(value = \"%s\") @ApiModelProperty(value = \"%s\")"
 ]
+apiModel = "@ApiModel(value = \"%s\")"
+tableName = "@TableName(value = \"%s\")"
 
 FILES.chooseDirectoryAndSave("Choose directory", "Choose where to store generated files") { dir ->
     SELECTION.filter { it instanceof DasTable }.each { generate(it, dir) }
@@ -43,13 +45,15 @@ def generate(table, dir) {
 }
 
 def generate(out, table, className, fields) {
+    def modelAnno = String.format(apiModel, table.getComment())
+    def taleAnno = String.format(tableName, table.getName())
     out.println "package $packageName"
     /* 可在此添加需要导入的包名，也可通过 IDE 批量修改生成的 Java 文件 */
     out.println ""
     out.println ""
     out.println "/** * @author jason */"
-    out.println "@ApiModel(value = \"${table.getComment()}\")"
-    out.println "@TableName(value = \"${table.getName()}\")"
+    out.println "${modelAnno}"
+    out.println "${taleAnno}"
     out.println "public class $className {"
     out.println ""
     fields.each() {
@@ -106,7 +110,7 @@ def gainComment(col) {
 def customAnnotation(col) {
     def comment = gainComment(col)
     def colName = Case.LOWER.apply(col.getName())
-    def format = annonMap.find { p, t -> p.matcher(colName).find() }.value
+    def format = annonMap.find { p, t -> p.matcher(colName).lookingAt() }.value
     return String.format(format, col.getName(), comment)
 }
 
